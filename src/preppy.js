@@ -39,38 +39,6 @@ define(function() {
 					callback();
 				});
 			});
-		},
-
-		cache: function cache() {
-			var PREPARED = 0;
-			var STARTED = 1;
-			var FINISHED = 2;
-			var mode = PREPARED;
-
-			var listenerList = [];
-			var cachedData;
-
-			var prepFn = this.prepFn;
-
-			return prepify(function(callback) {
-				if (mode === PREPARED) {
-					mode = STARTED;
-					listenerList.push(callback);
-					prepFn(function() {
-						mode = FINISHED;
-						cachedData = arguments;
-						while (listenerList.length > 0) {
-							var listener = listenerList[0];
-							listenerList.splice(0, 1);
-							listener.apply(null, cachedData);
-						}
-					});
-				} else if (mode === STARTED) {
-					listenerList.push(callback);
-				} else {
-					callback.apply(null, cachedData);
-				}
-			});
 		}
 	};
 
@@ -96,6 +64,67 @@ define(function() {
 		var values = arguments;
 		return prepify(function(callback) {
 			callback.apply(this, values);
+		});
+	}
+
+	function cache(prep) {
+		var PREPARED = { name: "PREPARED" };
+		var STARTED = { name: "STARTED" };
+		var FINISHED = { name: "FINISHED" };
+		var mode = PREPARED;
+
+		var listenerList = [];
+		var cachedData;
+
+		return prepify(function(callback) {
+			if (mode === PREPARED) {
+				listenerList.push(callback);
+				mode = STARTED;
+				prep.run(function() {
+					if (mode === STARTED) {
+						mode = FINISHED;
+						cachedData = arguments;
+						while (listenerList.length > 0) {
+							var listener = listenerList[0];
+							listenerList.splice(0, 1);
+							listener.apply(null, cachedData);
+						}
+					}
+				});
+			} else if (mode === STARTED) {
+				listenerList.push(callback);
+			} else {
+				callback.apply(null, cachedData);
+			}
+		});
+	}
+
+	function promise(prep) {
+		var STARTED = { name: "STARTED" };
+		var FINISHED = { name: "FINISHED" };
+		var mode = STARTED;
+
+		var listenerList = [];
+		var cachedData;
+
+		prep.run(function() {
+			if (mode === STARTED) {
+				mode = FINISHED;
+				cachedData = arguments;
+				while (listenerList.length > 0) {
+					var listener = listenerList[0];
+					listenerList.splice(0, 1);
+					listener.apply(null, cachedData);
+				}
+			}
+		});
+
+		return prepify(function(callback) {
+			if (mode === STARTED) {
+				listenerList.push(callback);
+			} else {
+				callback.apply(null, cachedData);
+			}
 		});
 	}
 
@@ -142,6 +171,8 @@ define(function() {
 		isPrep: isPrep,
 		prepify: prepify,
 		value: value,
+		cache: cache,
+		promise: promise,
 		join: join,
 		first: first
 	};

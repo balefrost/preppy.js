@@ -162,49 +162,12 @@ define(["js/preppy"], function(preppy) {
 			});
 		});
 
-		describePrepPair(".cache", function(prepper) {
-			it("doesn't start the original prep right away", function() {
-				var originalCompletionSpy = jasmine.createSpy();
-				var timeoutSpy = jasmine.createSpy();
-				var p = prepper(1, 2).then(originalCompletionSpy).cache();
-
-				setTimeout(timeoutSpy, 10);
-
-				waitsFor(spyToBeCalled(timeoutSpy));
-
-				runs(function() {
-					expect(originalCompletionSpy).not.toHaveBeenCalled();
-				});
-			});
-
-			it("starts the original prep if requested", function() {
-				var originalCompletionSpy = jasmine.createSpy();
-				var listenerSpy = jasmine.createSpy();
-				var p = prepper(1, 2).then(originalCompletionSpy).cache(true).run(listenerSpy);
-
-				waitsFor(spyToBeCalled(originalCompletionSpy));
-				waitsFor(spyToBeCalled(listenerSpy));
-
-				runs(function() {
-					expect(originalCompletionSpy).toHaveBeenCalledWith(1, 2);
-					expect(listenerSpy).toHaveBeenCalledWith(1, 2);
-				});
-			});
-
-			it("starts the original prep once a listener has been given a callback", function() {
-				var originalCompletionSpy = jasmine.createSpy();
-				var p = prepper(1, 2).then(originalCompletionSpy).cache();
-
-				p.run(function() {});
-
-				waitsFor(spyToBeCalled(originalCompletionSpy));
-			});
-
+		function describePromiseMethods(prepper) {
 			it("only starts the original prep once, no matter how many listeners are registered", function() {
 				var originalCompletionSpy = jasmine.createSpy();
 				var listenerSpy1 = jasmine.createSpy();
 				var listenerSpy2 = jasmine.createSpy();
-				var p = prepper(1, 2).then(originalCompletionSpy).cache();
+				var p = preppy.cache(prepper(1, 2).then(originalCompletionSpy));
 
 				p.run(listenerSpy1);
 				p.run(listenerSpy2);
@@ -224,7 +187,7 @@ define(["js/preppy"], function(preppy) {
 				var originalCompletionSpy = jasmine.createSpy();
 				var listenerSpy1 = jasmine.createSpy();
 				var listenerSpy2 = jasmine.createSpy();
-				var p = prepper(1, 2).then(originalCompletionSpy).cache();
+				var p = preppy.cache(prepper(1, 2).then(originalCompletionSpy));
 
 				p.run(listenerSpy1);
 				p.run(listenerSpy2);
@@ -239,8 +202,49 @@ define(["js/preppy"], function(preppy) {
 					expect(listenerSpy1).toHaveBeenCalledWith(1, 2);
 				});
 			});
+		}
+
+		describePrepPair("::cache", function(prepper) {
+			it("doesn't start the original prep right away", function() {
+				var originalCompletionSpy = jasmine.createSpy();
+				var timeoutSpy = jasmine.createSpy();
+				var p = preppy.cache(prepper(1, 2).then(originalCompletionSpy));
+
+				setTimeout(timeoutSpy, 10);
+
+				waitsFor(spyToBeCalled(timeoutSpy));
+
+				runs(function() {
+					expect(originalCompletionSpy).not.toHaveBeenCalled();
+				});
+			});
+
+			it("starts the original prep once a listener has been given a callback", function() {
+				var originalCompletionSpy = jasmine.createSpy();
+				var p = preppy.cache(prepper(1, 2).then(originalCompletionSpy));
+
+				p.run(function() {});
+
+				waitsFor(spyToBeCalled(originalCompletionSpy));
+			});
+
+			describePromiseMethods(prepper);
 		});
 
+		describePrepPair("::promise", function(prepper) {
+			it("starts the original prep immediately", function() {
+				var originalCompletionSpy = jasmine.createSpy();
+				var p = preppy.promise(prepper(1, 2).then(originalCompletionSpy));
+
+				waitsFor(spyToBeCalled(originalCompletionSpy));
+
+				runs(function() {
+					expect(originalCompletionSpy).toHaveBeenCalledWith(1, 2);
+				});
+			});
+
+			describePromiseMethods(prepper);
+		});
 
 		describePrepPair("::join", function(prepper) {
 			var vp1, vp2, vp3;
