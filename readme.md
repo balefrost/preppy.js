@@ -208,11 +208,13 @@ This creates a promise just like `preppy.promise`, but also starts the underlyin
 
 Suppose you want to fire off several asynchronous actions, and want to be informed when they have all completed. For that, you can use `join`.
 
+```javascript
 var p1 = ajaxGet(url1);
 var p2 = ajaxGet(url2);
 preppy.join([p1, p2]).run(function(result1, result2) {
 	console.log(result1[0], result2[0]);
 });
+```
 
 Because preps can produce multiple values, `join` produces one array per prep. Each array contains that prep's values. This is inconvenient, and there are many cases where a prep produces a single value. This will be made simpler in the future.
 
@@ -220,12 +222,14 @@ Because preps can produce multiple values, `join` produces one array per prep. E
 
 If you want to fire off several asynchronous actions and want to be informed when the first has completed, you can use `first`.
 
+```javascript
 var p1 = prepTimeout(500);
 var p2 = prepTimeout(100);
 preppy.first([p1, p2]).run(function(result1, result2) {
 	assert(result1 === undefined);
 	assert(result2[0] === 100);
 });
+```
 
 The one prep that succeeds will have a value similar to the value produced by `preppy.join`. The other preps will all produce an undefined value. As with `preppy.join`, this API is awkward. In order to find the prep that succeeded, you must look for the single, non-undefined value. This will be improved in the future.
 
