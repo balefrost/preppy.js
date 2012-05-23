@@ -6,7 +6,7 @@ define(function() {
 
 		map: function map(f) {
 			var prepFn = this.prepFn;
-			return prepify(function(callback) {
+			return async(function(callback) {
 				prepFn(function() {
 					callback(f.apply(this, arguments));
 				});
@@ -15,7 +15,7 @@ define(function() {
 
 		bind: function bind(f) {
 			var prepFn = this.prepFn;
-			return prepify(function(callback) {
+			return async(function(callback) {
 				prepFn(function() {
 					f.apply(this, arguments).run(callback);
 				});
@@ -24,7 +24,7 @@ define(function() {
 
 		then: function then(f) {
 			var prepFn = this.prepFn;
-			return prepify(function(callback) {
+			return async(function(callback) {
 				prepFn(function() {
 					f.apply(this, arguments);
 					callback.apply(this, arguments);
@@ -34,7 +34,7 @@ define(function() {
 
 		strip: function strip() {
 			var prepFn = this.prepFn;
-			return prepify(function(callback) {
+			return async(function(callback) {
 				prepFn(function() {
 					callback();
 				});
@@ -52,7 +52,7 @@ define(function() {
 		return Object.getPrototypeOf(obj) === prepProto;
 	}
 
-	function prepify(prep) {
+	function async(prep) {
 		if (isPrep(prep)) {
 			return prep;
 		} else {
@@ -62,12 +62,12 @@ define(function() {
 
 	function value() {
 		var values = arguments;
-		return prepify(function(callback) {
+		return async(function(callback) {
 			callback.apply(this, values);
 		});
 	}
 
-	function cache(prep) {
+	function promise(prep) {
 		var PREPARED = { name: "PREPARED" };
 		var STARTED = { name: "STARTED" };
 		var FINISHED = { name: "FINISHED" };
@@ -76,7 +76,7 @@ define(function() {
 		var listenerList = [];
 		var cachedData;
 
-		return prepify(function(callback) {
+		return async(function(callback) {
 			if (mode === PREPARED) {
 				listenerList.push(callback);
 				mode = STARTED;
@@ -99,7 +99,7 @@ define(function() {
 		});
 	}
 
-	function promise(prep) {
+	function precache(prep) {
 		var STARTED = { name: "STARTED" };
 		var FINISHED = { name: "FINISHED" };
 		var mode = STARTED;
@@ -119,7 +119,7 @@ define(function() {
 			}
 		});
 
-		return prepify(function(callback) {
+		return async(function(callback) {
 			if (mode === STARTED) {
 				listenerList.push(callback);
 			} else {
@@ -133,7 +133,7 @@ define(function() {
 			shouldContinue = function() { return true; };
 		}
 
-		return prepify(function(callback) {
+		return async(function(callback) {
 			var loadedList = new Array(preps.length);
 			var resultList = new Array(preps.length);
 			for (var i = 0; i < preps.length; ++i) {
@@ -169,10 +169,10 @@ define(function() {
 
 	return {
 		isPrep: isPrep,
-		prepify: prepify,
+		async: async,
 		value: value,
-		cache: cache,
 		promise: promise,
+		precache: precache,
 		join: join,
 		first: first
 	};
