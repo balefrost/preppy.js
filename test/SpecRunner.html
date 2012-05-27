@@ -2,45 +2,46 @@
   "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-  <title>Jasmine Spec Runner</title>
+	<title>Jasmine Spec Runner</title>
 
-  <link rel="shortcut icon" type="image/png" href="lib/jasmine-1.2.0.rc3/jasmine_favicon.png">
-  <link rel="stylesheet" type="text/css" href="lib/jasmine-1.2.0.rc3/jasmine.css">
-  <script type="text/javascript" src="lib/jasmine-1.2.0.rc3/jasmine.js"></script>
-  <script type="text/javascript" src="lib/jasmine-1.2.0.rc3/jasmine-html.js"></script>
+	<link rel="shortcut icon" type="image/png" href="lib/jasmine-1.2.0.rc3/jasmine_favicon.png">
+	<link rel="stylesheet" type="text/css" href="lib/jasmine-1.2.0.rc3/jasmine.css">
+	<script type="text/javascript" src="lib/jasmine-1.2.0.rc3/jasmine.js"></script>
+	<script type="text/javascript" src="lib/jasmine-1.2.0.rc3/jasmine-html.js"></script>
 
-  <script type="text/javascript" src="../lib/require.js"></script>
-  <script type="text/javascript">
-    require.config({
-      paths: {
-        "js": "../src",
-        "lib": "../lib",
-        "spec": "spec"
-      }
-    });
-  </script>
+	<script type="text/javascript" src="../lib/require.js"></script>
+	<script type="text/javascript">
+		require.config({
+			paths: {
+				"preppyjs": "../src",
+				"helpers": "../lib/amd/jasmine_helpers",
+				"spec": "spec"
+			}
+		});
+	</script>
 
-  <script type="text/javascript">
+	<script type="text/javascript">
 	require([
-	  "lib/domReady",
-	  "spec/preppy_spec"
+		"../lib/amd/domReady",
+		"spec/preppy_spec",
+		"spec/preppy_node_spec"
 	], function(domReady) {
-      var jasmineEnv = jasmine.getEnv();
-      jasmineEnv.updateInterval = 1000;
+			var jasmineEnv = jasmine.getEnv();
+			jasmineEnv.updateInterval = 1000;
 
-      var htmlReporter = new jasmine.HtmlReporter();
+			var htmlReporter = new jasmine.HtmlReporter();
 
-      jasmineEnv.addReporter(htmlReporter);
+			jasmineEnv.addReporter(htmlReporter);
 
-      jasmineEnv.specFilter = function(spec) {
-        return htmlReporter.specFilter(spec);
-      };
+			jasmineEnv.specFilter = function(spec) {
+				return htmlReporter.specFilter(spec);
+			};
 
-      domReady(function() {
-	      jasmineEnv.execute();
-      });
-    });
-  </script>
+			domReady(function() {
+				jasmineEnv.execute();
+			});
+		});
+	</script>
 
 </head>
 

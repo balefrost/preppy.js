@@ -1,10 +1,6 @@
-function spyToBeCalled(s) {
-	return function() {
-		return s.wasCalled;
-	}
-}
+define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
+	var spyToBeCalled = helpers.spyToBeCalled;
 
-define(["js/preppy"], function(preppy) {
 	function timeoutPrep(timeout, values) {
 		return preppy.async(function(callback) {
 			setTimeout(function() {
