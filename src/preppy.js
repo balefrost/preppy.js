@@ -60,7 +60,15 @@ define(function() {
 		}
 	}
 
+	var trivialValuePrep = async(function(callback) {
+		callback();
+	});
+
 	function value() {
+		if (arguments.length === 0) {
+			return trivialValuePrep;
+		}
+
 		var values = arguments;
 		return async(function(callback) {
 			callback.apply(this, values);
