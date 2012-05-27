@@ -1,13 +1,19 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-  "http://www.w3.org/TR/html4/loose.dtd">
+	"http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 	<title>Jasmine Spec Runner</title>
 
-	<link rel="shortcut icon" type="image/png" href="lib/jasmine-1.2.0.rc3/jasmine_favicon.png">
-	<link rel="stylesheet" type="text/css" href="lib/jasmine-1.2.0.rc3/jasmine.css">
-	<script type="text/javascript" src="lib/jasmine-1.2.0.rc3/jasmine.js"></script>
-	<script type="text/javascript" src="lib/jasmine-1.2.0.rc3/jasmine-html.js"></script>
+	<link rel="shortcut icon" type="image/png" href="lib/jasmine-1.2.0/jasmine_favicon.png">
+	<link rel="stylesheet" type="text/css" href="lib/jasmine-1.2.0/jasmine.css">
+	<script type="text/javascript" src="lib/jasmine-1.2.0/jasmine.js"></script>
+	<script type="text/javascript" src="lib/jasmine-1.2.0/jasmine-html.js"></script>
+
+	<script type="text/javascript">
+		(function() {
+		})();
+	</script>
+
 
 	<script type="text/javascript" src="../lib/require.js"></script>
 	<script type="text/javascript">
@@ -21,11 +27,11 @@
 	</script>
 
 	<script type="text/javascript">
-	require([
-		"../lib/amd/domReady",
-		"spec/preppy_spec",
-		"spec/preppy_node_spec"
-	], function(domReady) {
+		require([
+			"../lib/amd/domReady",
+			"spec/preppy_spec",
+			"spec/preppy_node_spec"
+		], function(domReady) {
 			var jasmineEnv = jasmine.getEnv();
 			jasmineEnv.updateInterval = 1000;
 
@@ -36,6 +42,8 @@
 			jasmineEnv.specFilter = function(spec) {
 				return htmlReporter.specFilter(spec);
 			};
+
+			var currentWindowOnload = window.onload;
 
 			domReady(function() {
 				jasmineEnv.execute();
