@@ -251,6 +251,18 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 				vp3 = prepper(5, 6);
 			});
 
+			it("fires immediately with no preps", function() {
+				var p = preppy.join([]);
+				var listenerSpy = jasmine.createSpy();
+				p.run(listenerSpy);
+
+				waitsFor(spyToBeCalled(listenerSpy));
+
+				runs(function() {
+					expect(listenerSpy).toHaveBeenCalledWith();
+				});
+			});
+
 			it("waits until all preps have completed", function() {
 				var p = preppy.join([vp1, vp2]);
 				var listenerSpy = jasmine.createSpy();

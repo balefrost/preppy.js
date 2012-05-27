@@ -129,6 +129,10 @@ define(function() {
 	}
 
 	function join(preps, shouldContinue) {
+		if (preps.length === 0) {
+			return value();
+		}
+
 		if (!shouldContinue) {
 			shouldContinue = function() { return true; };
 		}
