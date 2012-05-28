@@ -291,6 +291,18 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 		});
 
 		describe("::first", function() {
+			it("fires immediately with no preps", function() {
+				var p = preppy.first([]);
+				var listenerSpy = jasmine.createSpy();
+				p.run(listenerSpy);
+
+				waitsFor(spyToBeCalled(listenerSpy));
+
+				runs(function() {
+					expect(listenerSpy).toHaveBeenCalledWith();
+				});
+			});
+
 			it("only resolves the first prep to fire", function() {
 				var vp1 = timeoutPrep(100, [1, 2]);
 				var vp2 = timeoutPrep(1, [3, 4]);
