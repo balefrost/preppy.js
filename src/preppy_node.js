@@ -4,11 +4,12 @@ define(['preppyjs/preppy'], function(preppy) {
 	}
 
 	NodePrep.prototype.map = function map(f) {
-		var newPrep = this.prep.bind(function(err, value) {
+		var newPrep = this.prep.bind(function(err) {
 			if (err) {
-				return preppy.value(err);
+				return this;
 			} else {
-				return preppy.value(null, f(value));
+				var values = Array.prototype.slice.call(arguments, 1);
+				return preppy.value(null, f.apply(null, values));
 			}
 		});
 		return new NodePrep(newPrep);
@@ -16,11 +17,12 @@ define(['preppyjs/preppy'], function(preppy) {
 
 
 	NodePrep.prototype.bind = function bind(f) {
-		var newPrep = this.prep.bind(function(err, value) {
+		var newPrep = this.prep.bind(function(err) {
 			if (err) {
-				return preppy.value(err);
+				return this;
 			} else {
-				return f(value);
+				var values = Array.prototype.slice.call(arguments, 1);
+				return f.apply(null, values).prep;
 			}
 		});
 		return new NodePrep(newPrep);
@@ -34,12 +36,14 @@ define(['preppyjs/preppy'], function(preppy) {
 		return Object.getPrototypeOf(nprep) === NodePrep.prototype;
 	}
 
+	var makeValuePrep = preppy.value.bind(preppy, null);
+
 	function value(v) {
-		return new NodePrep(preppy.value(null, v));
+		return new NodePrep(makeValuePrep.apply(null, arguments));
 	}
 
 	function error(e) {
-		return new NodePrep(preppy.value(e));
+		return new NodePrep(preppy.value.apply(preppy, arguments));
 	}
 
 	function async(prepOrFn) {

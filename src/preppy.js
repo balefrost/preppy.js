@@ -1,41 +1,45 @@
 define(function() {
 	var prepProto = {
 		run: function run(callback) {
-			this.prepFn(callback);
+			this.prepFn.call(this, callback.bind(this));
 		},
 
 		map: function map(f) {
-			var prepFn = this.prepFn;
+			var prep = this;
 			return async(function(callback) {
-				prepFn(function() {
-					callback(f.apply(this, arguments));
+				prep.run(function() {
+					callback(f.apply(prep, arguments));
 				});
 			});
 		},
 
 		bind: function bind(f) {
-			var prepFn = this.prepFn;
+			var prep = this;
 			return async(function(callback) {
-				prepFn(function() {
-					f.apply(this, arguments).run(callback);
+				prep.run(function() {
+					var nextPrep = f.apply(prep, arguments);
+					if (!isPrep(nextPrep)) {
+						throw "Expected " + (f.name || "(anonymous function)") + " to return a prep";
+					}
+					nextPrep.run(callback);
 				});
 			});
 		},
 
 		then: function then(f) {
-			var prepFn = this.prepFn;
+			var prep = this;
 			return async(function(callback) {
-				prepFn(function() {
-					f.apply(this, arguments);
+				prep.run(function() {
+					f.apply(prep, arguments);
 					callback.apply(this, arguments);
 				});
 			});
 		},
 
 		strip: function strip() {
-			var prepFn = this.prepFn;
+			var prep = this;
 			return async(function(callback) {
-				prepFn(function() {
+				prep.run(function() {
 					callback();
 				});
 			});
@@ -49,6 +53,14 @@ define(function() {
 	Prep.prototype = prepProto;
 
 	function isPrep(obj) {
+		if (obj === null || obj === undefined) {
+			return false;
+		}
+
+		var t = typeof(obj);
+		if (t === "number" || t === "boolean" || t === "string") {
+			return false;
+		}
 		return Object.getPrototypeOf(obj) === prepProto;
 	}
 

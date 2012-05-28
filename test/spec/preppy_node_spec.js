@@ -1,18 +1,22 @@
 define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers, pnode, preppy) {
 	var spyToBeCalled = helpers.spyToBeCalled;
 
-	function asyncSuccess(v) {
+	function asyncSuccess() {
+		var args = arguments;
 		return pnode.async(function(callback) {
 			setTimeout(function() {
-				callback(null, v);
+				var theArgs = [null];
+				theArgs.push.apply(theArgs, args);
+				callback.apply(null, theArgs);
 			}, 1);
 		});
 	}
 
-	function asyncError(e) {
+	function asyncError() {
+		var args = arguments;
 		return pnode.async(function(callback) {
 			setTimeout(function() {
-				callback(e);
+				callback.apply(null, args);
 			}, 1);
 		});
 	}
@@ -32,13 +36,13 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 			var p;
 
 			beforeEach(function() {
-				p = pnode.value(42);
+				p = pnode.value(42, 57);
 			});
 
-			it("immediately calls the callback with the value", function() {
+			it("immediately calls the callback with the values", function() {
 				var callback = jasmine.createSpy();
 				p.run(callback);
-				expect(callback).toHaveBeenCalledWith(null, 42);
+				expect(callback).toHaveBeenCalledWith(null, 42, 57);
 			});
 
 			it("can be reused", function() {
@@ -46,8 +50,8 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 				var callback2 = jasmine.createSpy();
 				p.run(callback1);
 				p.run(callback2);
-				expect(callback1).toHaveBeenCalledWith(null, 42);
-				expect(callback2).toHaveBeenCalledWith(null, 42);
+				expect(callback1).toHaveBeenCalledWith(null, 42, 57);
+				expect(callback2).toHaveBeenCalledWith(null, 42, 57);
 			});
 		});
 
@@ -112,9 +116,6 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 		describe("::join", function() {
 		});
 
-		describe(".map", function() {
-		});
-
 		function describePreps(name, testFn) {
 			describe(name, function() {
 				describe("value preps", function() {
@@ -128,13 +129,11 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 
 		describePreps(".map", function(successPrepper, errorPrepper) {
 			describe("success preps", function() {
-				it("maps the parameter that is passed on", function() {
+				it("maps the parameters that are passed in", function() {
 					var callbackSpy = jasmine.createSpy("callbackSpy");
 					successPrepper(19).map(function(v) {
-						console.log(v);
 						return v + 11;
 					}).run(function(v) {
-						console.log(arguments);
 						callbackSpy.apply(null, arguments);
 					});
 
@@ -150,8 +149,8 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 				var mappingSpy, callbackSpy;
 
 				beforeEach(function() {
-					mappingSpy = jasmine.createSpy();
-					callbackSpy = jasmine.createSpy();
+					mappingSpy = jasmine.createSpy("mappingSpy");
+					callbackSpy = jasmine.createSpy("callbackSpy");
 				});
 
 				it("does not call the mapping function", function() {
@@ -178,17 +177,17 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 
 		describePreps(".bind", function(successPrepper, errorPrepper) {
 			describe("success preps producing success preps", function() {
-				it("binds the parameter that is passed in", function() {
-					var callbackSpy = jasmine.createSpy();
+				it("binds the parameters that are passed in", function() {
+					var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(successPrepper(92));
+					var callbackSpy = jasmine.createSpy("callbackSpy");
 
-					successPrepper(15).bind(function(v) {
-						return successPrepper(16);
-					}).run(callbackSpy);
+					successPrepper(15, 35).bind(bindingSpy).run(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
 					runs(function() {
-						expect(callbackSpy).toHaveBeenCalledWith(null, 16);
+						expect(bindingSpy).toHaveBeenCalledWith(15, 35);
+						expect(callbackSpy).toHaveBeenCalledWith(null, 92);
 					});
 				});
 			});

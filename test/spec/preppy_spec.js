@@ -22,7 +22,31 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 			it("returns false if passed an object", function() {
 				expect(preppy.isPrep({})).toBe(false);
 			});
-		})
+
+			it("returns false if passed null", function() {
+				expect(preppy.isPrep(null)).toBe(false);
+			});
+
+			it("returns false if passed undefined", function() {
+				expect(preppy.isPrep(undefined)).toBe(false);
+			});
+
+			it("returns false if passed a number", function() {
+				expect(preppy.isPrep(42)).toBe(false);
+			});
+
+			it("returns false if passed a NaN", function() {
+				expect(preppy.isPrep(NaN)).toBe(false);
+			});
+
+			it("returns false if passed a string", function() {
+				expect(preppy.isPrep("zoo")).toBe(false);
+			});
+
+			it("returns false if passed a boolean", function() {
+				expect(preppy.isPrep(false)).toBe(false);
+			});
+		});
 
 		describe("::async", function() {
 			it("returns the same object if passed a prep", function() {
@@ -35,6 +59,17 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 				var originalPrep = function(callback) { callback(1, 2); };
 				var newPrep = preppy.async(originalPrep);
 				expect(newPrep).not.toBe(originalPrep);
+			});
+
+			it("passes the prep as this to the invoking function", function() {
+				var starterSpy = jasmine.createSpy("starterSpy").andCallFake(function(callback) {
+					callback(1, 2);
+				});
+
+				var prep = preppy.async(starterSpy);
+
+				prep.run(function() {});
+				expect(starterSpy.mostRecentCall.object).toBe(prep);
 			});
 		});
 
@@ -61,7 +96,7 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 			});
 		});
 
-		function describePrepPair(name, testFn) {
+		function describePreps(name, testFn) {
 			describe(name, function() {
 				describe("of value preps", function() {
 					testFn(preppy.value);
@@ -72,22 +107,40 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 			});
 		}
 
-		describePrepPair(".then", function (prepper) {
-			var originalPrep, thenPrep, thenSpy, finalSpy;
+		describePreps(".run", function(prepper) {
+			it("passes the original prep as this", function() {
+				var callbackSpy = jasmine.createSpy("callbackSpy");
+
+				var originalP = prepper(15);
+
+				originalP.run(callbackSpy);
+
+				waitsFor(spyToBeCalled(callbackSpy));
+
+				runs(function() {
+					expect(callbackSpy.mostRecentCall.object).toBe(originalP);
+				});
+			});
+		});
+
+		describePreps(".then", function (prepper) {
+			var originalP, thenP, thenSpy, callbackSpy;
 
 			beforeEach(function() {
-				originalPrep = prepper(1, 2);
-				thenSpy = jasmine.createSpy();
-				finalSpy = jasmine.createSpy();
-				thenPrep = originalPrep.then(thenSpy);
+				originalP = prepper(1, 2);
+				thenSpy = jasmine.createSpy("thenSpy");
+				callbackSpy = jasmine.createSpy("callbackSpy");
+				thenP = originalP.then(thenSpy);
 			});
 
 			it("is different from the original prep", function() {
-				expect(thenPrep).not.toBe(originalPrep);
+				expect(thenP).not.toBe(originalP);
+			});
 
-				originalPrep.run(finalSpy);
+			it("does not call the then function if the original prep is invoked", function() {
+				originalP.run(callbackSpy);
 
-				waitsFor(spyToBeCalled(finalSpy));
+				waitsFor(spyToBeCalled(callbackSpy));
 
 				runs(function() {
 					expect(thenSpy).not.toHaveBeenCalled();
@@ -95,7 +148,7 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 			});
 
 			it("calls the provided function with the prep's parameters", function() {
-				thenPrep.run(finalSpy);
+				thenP.run(callbackSpy);
 
 				waitsFor(spyToBeCalled(thenSpy));
 
@@ -104,31 +157,46 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 				});
 			});
 
-			it("calls the final callback function with the prep's parameters", function() {
-				thenPrep.run(finalSpy);
+			it("passes the original prep as this", function() {
+				thenP.run(callbackSpy);
 
-				waitsFor(spyToBeCalled(finalSpy));
+				waitsFor(spyToBeCalled(callbackSpy));
 
 				runs(function() {
-					expect(finalSpy).toHaveBeenCalledWith(1, 2);
+					expect(thenSpy.mostRecentCall.object).toBe(originalP);
+					expect(callbackSpy.mostRecentCall.object).toBe(thenP);
 				});
 			});
-
 
 			it("ignores the return value from the intermediate function", function() {
 				thenSpy.andReturn("this will never appear anywhere");
 
-				thenPrep.run(finalSpy);
+				thenP.run(callbackSpy);
 
-				waitsFor(spyToBeCalled(finalSpy));
+				waitsFor(spyToBeCalled(callbackSpy));
 
 				runs(function() {
-					expect(finalSpy).toHaveBeenCalledWith(1, 2);
+					expect(callbackSpy).toHaveBeenCalledWith(1, 2);
 				});
 			});
 		});
 
-		describePrepPair(".map", function(prepper) {
+		describePreps(".map", function(prepper) {
+			it("passes the original prep as this", function() {
+				var mappingSpy = jasmine.createSpy("mappingSpy").andReturn(0);
+				var callbackSpy = jasmine.createSpy("callbackSpy");
+
+				var originalP = prepper(15);
+
+				originalP.map(mappingSpy).run(callbackSpy);
+
+				waitsFor(spyToBeCalled(callbackSpy));
+
+				runs(function() {
+					expect(mappingSpy.mostRecentCall.object).toBe(originalP);
+				});
+			});
+
 			it("maps the parameters that are passed on", function() {
 				var spy = jasmine.createSpy();
 				prepper(1, 2).map(function(a, b) {
@@ -143,7 +211,22 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 			});
 		});
 
-		describePrepPair(".bind", function(prepper) {
+		describePreps(".bind", function(prepper) {
+			it("passes the original prep as this", function() {
+				var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(prepper(0));
+				var callbackSpy = jasmine.createSpy("callbackSpy");
+
+				var originalP = prepper(15);
+
+				originalP.bind(bindingSpy).run(callbackSpy);
+
+				waitsFor(spyToBeCalled(callbackSpy));
+
+				runs(function() {
+					expect(bindingSpy.mostRecentCall.object).toBe(originalP);
+				});
+			});
+
 			it("binds the parameters that are passed on", function() {
 				var spy = jasmine.createSpy();
 				prepper(1, 2).bind(function(a, b) {
@@ -200,7 +283,7 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 			});
 		}
 
-		describePrepPair("::promise", function(prepper) {
+		describePreps("::promise", function(prepper) {
 			it("doesn't start the original prep right away", function() {
 				var originalCompletionSpy = jasmine.createSpy();
 				var timeoutSpy = jasmine.createSpy();
@@ -227,7 +310,7 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 			describePromiseMethods(prepper);
 		});
 
-		describePrepPair("::precache", function(prepper) {
+		describePreps("::precache", function(prepper) {
 			it("starts the original prep immediately", function() {
 				var originalCompletionSpy = jasmine.createSpy();
 				var p = preppy.precache(prepper(1, 2).then(originalCompletionSpy));
@@ -242,7 +325,7 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 			describePromiseMethods(prepper);
 		});
 
-		describePrepPair("::join", function(prepper) {
+		describePreps("::join", function(prepper) {
 			var vp1, vp2, vp3;
 
 			beforeEach(function() {
