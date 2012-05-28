@@ -65,6 +65,14 @@ define(['preppyjs/preppy'], function(preppy) {
 		};
 	}
 
+	function unprepify(returns_prep) {
+		return function() {
+			var args = Array.prototype.slice.call(arguments, 0, arguments.length - 1);
+			var callback = arguments[arguments.length - 1];
+			returns_prep.apply(this, args).run(callback);
+		};
+	}
+
 	function join(nodePreps) {
 		var rawPreps = nodePreps.map(function(np) { return np.prep; });
 		var joinedPrep = preppy.join(rawPreps).bind(function() {
@@ -90,6 +98,7 @@ define(['preppyjs/preppy'], function(preppy) {
 		error: error,
 		async: async,
 		prepify: prepify,
+		unprepify: unprepify,
 		join: join
 	}
 });

@@ -127,6 +127,44 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 			});
 		}
 
+		describePreps("::unprepify", function(successPrepper, errorPrepper) {
+			describe("success preps", function() {
+				it ("returns a function that builds and invokes the prep immediately", function() {
+					var callbackSpy = jasmine.createSpy("callbackSpy");
+
+					var unprepped = pnode.unprepify(function(a, b) {
+						return successPrepper(a, b);
+					});
+
+					unprepped(1, 2, callbackSpy);
+
+					waitsFor(spyToBeCalled(callbackSpy));
+
+					runs(function() {
+						expect(callbackSpy).toHaveBeenCalledWith(null, 1, 2);
+					});
+				});
+			});
+
+			describe("error preps", function() {
+				it ("returns a function that builds and invokes the prep immediately", function() {
+					var callbackSpy = jasmine.createSpy("callbackSpy");
+
+					var unprepped = pnode.unprepify(function(a) {
+						return errorPrepper("ENOBOB", a);
+					});
+
+					unprepped("fred", callbackSpy);
+
+					waitsFor(spyToBeCalled(callbackSpy));
+
+					runs(function() {
+						expect(callbackSpy).toHaveBeenCalledWith("ENOBOB", "fred");
+					});
+				});
+			});
+		});
+
 		describePreps(".map", function(successPrepper, errorPrepper) {
 			describe("success preps", function() {
 				it("maps the parameters that are passed in", function() {
