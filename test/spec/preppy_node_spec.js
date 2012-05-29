@@ -30,6 +30,30 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 			it("returns false if passed an object", function() {
 				expect(pnode.isNodePrep({})).toBe(false);
 			});
+
+			it("returns false if passed null", function() {
+				expect(pnode.isNodePrep(null)).toBe(false);
+			});
+
+			it("returns false if passed undefined", function() {
+				expect(pnode.isNodePrep(undefined)).toBe(false);
+			});
+
+			it("returns false if passed a number", function() {
+				expect(pnode.isNodePrep(42)).toBe(false);
+			});
+
+			it("returns false if passed a NaN", function() {
+				expect(pnode.isNodePrep(NaN)).toBe(false);
+			});
+
+			it("returns false if passed a string", function() {
+				expect(pnode.isNodePrep("zoo")).toBe(false);
+			});
+
+			it("returns false if passed a boolean", function() {
+				expect(pnode.isNodePrep(false)).toBe(false);
+			});
 		});
 
 		describe("::value", function() {

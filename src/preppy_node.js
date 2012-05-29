@@ -37,17 +37,25 @@ define(['preppyjs/preppy'], function(preppy) {
 		this.prep.run(callback);
 	};
 
-	function isNodePrep(nprep) {
-		return Object.getPrototypeOf(nprep) === NodePrep.prototype;
+	function isNodePrep(obj) {
+		if (obj === null || obj === undefined) {
+			return false;
+		}
+
+		var t = typeof(obj);
+		if (t === "number" || t === "boolean" || t === "string") {
+			return false;
+		}
+		return Object.getPrototypeOf(obj) === NodePrep.prototype;
 	}
 
 	var makeValuePrep = preppy.value.bind(preppy, null);
 
-	function value(v) {
+	function value() {
 		return new NodePrep(makeValuePrep.apply(null, arguments));
 	}
 
-	function error(e) {
+	function error() {
 		return new NodePrep(preppy.value.apply(preppy, arguments));
 	}
 
