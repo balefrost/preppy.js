@@ -17,12 +17,17 @@ define(['preppyjs/preppy'], function(preppy) {
 
 
 	NodePrep.prototype.bind = function bind(f) {
+		var nodePrep = this;
 		var newPrep = this.prep.bind(function(err) {
 			if (err) {
 				return this;
 			} else {
 				var values = Array.prototype.slice.call(arguments, 1);
-				return f.apply(null, values).prep;
+				var nextPrep = f.apply(nodePrep, values);
+				if (!isNodePrep(nextPrep)) {
+					throw "expected " + (f.name || "(anonymous function)") + " to return a NodePrep, but it returned " + typeof(nextPrep);
+				}
+				return nextPrep.prep;
 			}
 		});
 		return new NodePrep(newPrep);

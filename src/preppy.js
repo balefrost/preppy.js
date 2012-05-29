@@ -19,7 +19,7 @@ define(function() {
 				prep.run(function() {
 					var nextPrep = f.apply(prep, arguments);
 					if (!isPrep(nextPrep)) {
-						throw "Expected " + (f.name || "(anonymous function)") + " to return a prep";
+						throw "Expected " + (f.name || "(anonymous function)") + " to return a prep, but it returned " + typeof(nextPrep);
 					}
 					nextPrep.run(callback);
 				});
