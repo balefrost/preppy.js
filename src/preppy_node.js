@@ -1,41 +1,66 @@
 define(['preppyjs/preppy'], function(preppy) {
+	var nodePrepPrototype = {
+		map: function map(f) {
+			var newPrep = this.prep.bind(function(err) {
+				if (err) {
+					return this;
+				} else {
+					var values = Array.prototype.slice.call(arguments, 1);
+					return preppy.value(null, f.apply(null, values));
+				}
+			});
+			return new NodePrep(newPrep);
+		},
+
+		bind: function bind(f) {
+			var nodePrep = this;
+			var newPrep = this.prep.bind(function(err) {
+				if (err) {
+					return this;
+				} else {
+					var values = Array.prototype.slice.call(arguments, 1);
+					var nextPrep = f.apply(nodePrep, values);
+					if (!isNodePrep(nextPrep)) {
+						throw "expected " + (f.name || "(anonymous function)") + " to return a NodePrep, but it returned " + typeof(nextPrep);
+					}
+					return nextPrep.prep;
+				}
+			});
+			return new NodePrep(newPrep);
+		},
+
+		run: function run(callback) {
+			this.prep.run(callback);
+		},
+
+		finally: function fnally(finallyPrepper) {
+			var prep = this;
+			return function(bodyPrepper) {
+				return prep.bind(function() {
+					var prepArguments = arguments;
+					return async(function(callback) {
+						var bodyPrep = bodyPrepper.apply(null, prepArguments);
+						var finallyPrep = finallyPrepper.apply(null, prepArguments);
+						bodyPrep.run(function() {
+							var bodyArguments = arguments;
+							finallyPrep.run(function(err) {
+								if (err) {
+									console.error("exception while processing finally");
+								}
+								callback.apply(null, bodyArguments);
+							});
+						});
+					});
+				});
+			}
+		}
+	};
+
+	NodePrep.prototype = nodePrepPrototype;
+
 	function NodePrep(prep) {
 		this.prep = prep;
 	}
-
-	NodePrep.prototype.map = function map(f) {
-		var newPrep = this.prep.bind(function(err) {
-			if (err) {
-				return this;
-			} else {
-				var values = Array.prototype.slice.call(arguments, 1);
-				return preppy.value(null, f.apply(null, values));
-			}
-		});
-		return new NodePrep(newPrep);
-	};
-
-
-	NodePrep.prototype.bind = function bind(f) {
-		var nodePrep = this;
-		var newPrep = this.prep.bind(function(err) {
-			if (err) {
-				return this;
-			} else {
-				var values = Array.prototype.slice.call(arguments, 1);
-				var nextPrep = f.apply(nodePrep, values);
-				if (!isNodePrep(nextPrep)) {
-					throw "expected " + (f.name || "(anonymous function)") + " to return a NodePrep, but it returned " + typeof(nextPrep);
-				}
-				return nextPrep.prep;
-			}
-		});
-		return new NodePrep(newPrep);
-	};
-
-	NodePrep.prototype.run = function run(callback) {
-		this.prep.run(callback);
-	};
 
 	function isNodePrep(obj) {
 		if (obj === null || obj === undefined) {

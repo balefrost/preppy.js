@@ -299,6 +299,70 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 			});
 		});
 
+		describePreps(".finally", function(successPrepper, errorPrepper) {
+			var bodyPrepperSpy, finallyPrepperSpy, callbackSpy;
+
+			beforeEach(function() {
+				bodyPrepperSpy = jasmine.createSpy();
+				finallyPrepperSpy = jasmine.createSpy();
+				callbackSpy = jasmine.createSpy();
+			});
+
+			describe("success preps producing success preps with successful finally block", function() {
+				beforeEach(function() {
+					bodyPrepperSpy.andReturn(pnode.value(2));
+					finallyPrepperSpy.andReturn(pnode.value(3));
+
+					var p = successPrepper(1).finally(finallyPrepperSpy)(bodyPrepperSpy);
+					p.run(callbackSpy);
+					waitsFor(spyToBeCalled(callbackSpy));
+				});
+
+				it("asks for the finally prep", function() {
+					expect(finallyPrepperSpy).toHaveBeenCalledWith(1);
+				});
+
+				it("runs the callback function", function() {
+					expect(callbackSpy).toHaveBeenCalledWith(null, 2);
+				});
+			});
+
+			describe("success preps producing error preps with successful finally block", function() {
+				beforeEach(function() {
+					bodyPrepperSpy.andReturn(pnode.error("e"));
+					finallyPrepperSpy.andReturn(pnode.value(3));
+
+					var p = successPrepper(1).finally(finallyPrepperSpy)(bodyPrepperSpy);
+					p.run(callbackSpy);
+					waitsFor(spyToBeCalled(callbackSpy));
+				});
+
+				it("asks for the finally prep", function() {
+					expect(finallyPrepperSpy).toHaveBeenCalledWith(1);
+				});
+
+				it("runs the callback function", function() {
+					expect(callbackSpy).toHaveBeenCalledWith("e");
+				});
+			});
+
+			describe("error preps", function() {
+				beforeEach(function() {
+					var p = errorPrepper("er").finally(finallyPrepperSpy)(bodyPrepperSpy);
+					p.run(callbackSpy);
+					waitsFor(spyToBeCalled(callbackSpy));
+				});
+
+				it("does not ask for finally prep", function() {
+					expect(finallyPrepperSpy).not.toHaveBeenCalled();
+				});
+
+				it("runs the callback function", function() {
+					expect(callbackSpy).toHaveBeenCalledWith("er");
+				});
+			});
+		});
+
 		xdescribe("::join", function() {
 		});
 	});
