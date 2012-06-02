@@ -88,6 +88,10 @@ define(function() {
 	}
 
 	function promise(prep) {
+		if (!isPrep(prep)) {
+			throw "promise takes a prep";
+		}
+
 		var PREPARED = { name: "PREPARED" };
 		var STARTED = { name: "STARTED" };
 		var FINISHED = { name: "FINISHED" };
@@ -120,6 +124,9 @@ define(function() {
 	}
 
 	function precache(prep) {
+		if (!isPrep(prep)) {
+			throw "precache takes a prep";
+		}
 		var STARTED = { name: "STARTED" };
 		var FINISHED = { name: "FINISHED" };
 		var mode = STARTED;
@@ -151,6 +158,10 @@ define(function() {
 	function join(preps, shouldContinue) {
 		if (preps.length === 0) {
 			return value();
+		}
+
+		if (!preps.every(isPrep)) {
+			throw "only accepts preps";
 		}
 
 		if (!shouldContinue) {
