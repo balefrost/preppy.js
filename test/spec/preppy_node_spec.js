@@ -299,6 +299,68 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 			});
 		});
 
+		describePreps(".bindall", function(successPrepper, errorPrepper) {
+			describe("success preps", function() {
+				it("binds the parameters that are passed in, producing a value", function() {
+					var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(pnode.value(6, 7, 8));
+					var callbackSpy = jasmine.createSpy("callbackSpy");
+
+					successPrepper(19).bindall(bindingSpy).run(callbackSpy);
+
+					waitsFor(spyToBeCalled(callbackSpy));
+
+					runs(function() {
+						expect(bindingSpy).toHaveBeenCalledWith(null, 19)
+						expect(callbackSpy).toHaveBeenCalledWith(null, 6, 7, 8);
+					});
+				});
+
+				it("binds the parameters that are passed in, producing an error", function() {
+					var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(pnode.error(6, 7, 8));
+					var callbackSpy = jasmine.createSpy("callbackSpy");
+
+					successPrepper(19).bindall(bindingSpy).run(callbackSpy);
+
+					waitsFor(spyToBeCalled(callbackSpy));
+
+					runs(function() {
+						expect(bindingSpy).toHaveBeenCalledWith(null, 19)
+						expect(callbackSpy).toHaveBeenCalledWith(6, 7, 8);
+					});
+				});
+			});
+
+			describe("error preps", function() {
+				it("binds the parameters that are passed in, producing a value", function() {
+					var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(pnode.value(6, 7, 8));
+					var callbackSpy = jasmine.createSpy("callbackSpy");
+
+					errorPrepper("err", 78).bindall(bindingSpy).run(callbackSpy);
+
+					waitsFor(spyToBeCalled(callbackSpy));
+
+					runs(function() {
+						expect(bindingSpy).toHaveBeenCalledWith("err", 78)
+						expect(callbackSpy).toHaveBeenCalledWith(null, 6, 7, 8);
+					});
+				});
+
+				it("binds the parameters that are passed in, producing an error", function() {
+					var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(pnode.error(6, 7, 8));
+					var callbackSpy = jasmine.createSpy("callbackSpy");
+
+					errorPrepper("err", 78).bindall(bindingSpy).run(callbackSpy);
+
+					waitsFor(spyToBeCalled(callbackSpy));
+
+					runs(function() {
+						expect(bindingSpy).toHaveBeenCalledWith("err", 78)
+						expect(callbackSpy).toHaveBeenCalledWith(6, 7, 8);
+					});
+				});
+			});
+		});
+
 		describePreps(".finally", function(successPrepper, errorPrepper) {
 			var bodyPrepperSpy, finallyPrepperSpy, callbackSpy;
 

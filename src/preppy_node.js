@@ -14,19 +14,26 @@ define(['preppyjs/preppy'], function(preppy) {
 
 		bind: function bind(f) {
 			var nodePrep = this;
-			var newPrep = this.prep.bind(function(err) {
+			return this.bindall(function(err) {
 				if (err) {
-					return this;
+					return nodePrep;
 				} else {
 					var values = Array.prototype.slice.call(arguments, 1);
 					var nextPrep = f.apply(nodePrep, values);
-					if (!isNodePrep(nextPrep)) {
-						throw "expected " + (f.name || "(anonymous function)") + " to return a NodePrep, but it returned " + typeof(nextPrep);
-					}
-					return nextPrep.prep;
+					return nextPrep;
 				}
 			});
-			return new NodePrep(newPrep);
+		},
+
+		bindall: function bindall(f) {
+			var nodePrep = this;
+			return new NodePrep(nodePrep.prep.bind(function() {
+				var nextPrep = f.apply(this, arguments);
+				if (!isNodePrep(nextPrep)) {
+					throw "expected " + (f.name || "(anonymous function)") + " to return a NodePrep, but it returned " + typeof(nextPrep);
+				}
+				return nextPrep.prep;
+			}));
 		},
 
 		run: function run(callback) {
@@ -130,10 +137,21 @@ define(['preppyjs/preppy'], function(preppy) {
 		return new NodePrep(joinedPrep);
 	}
 
+	function promise(nodePrep) {
+		if (!isNodePrep(nodePrep)) {
+			throw "not a nodeprep";
+		}
+		var promisedPrep = preppy.promise(nodePrep.prep);
+		return async(function(callback) {
+			promisedPrep.run(callback);
+		});
+	}
+
 	return {
 		isNodePrep: isNodePrep,
 		value: value,
 		error: error,
+		promise: promise,
 		async: async,
 		prepify: prepify,
 		unprepify: unprepify,
