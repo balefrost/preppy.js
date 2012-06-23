@@ -164,7 +164,7 @@ ajaxGet(rootUrl, id).bind(function(err, value) {
 
 Now, if the first ajaxGet call fails for whatever reason, we will not try to make the second request - the error will propagate along the prep pipeline immediately.
 
-###Promising
+##Promising
 
 I had mentioned earlier that preps aren't full-blown promises. A prep is merely the description of an async action. It doesn't correspond to an actual, in-flight action. If a prep's `run` method is invoked multiple times, it actually spawns several copies of the same async action. In fact, there is no object that corresponds to an in-flight async action.
 
