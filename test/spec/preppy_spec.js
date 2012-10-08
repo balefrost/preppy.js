@@ -281,6 +281,28 @@ define(["helpers", "preppyjs/preppy"], function(helpers, preppy) {
 					expect(listenerSpy1).toHaveBeenCalledWith(1, 2);
 				});
 			});
+
+			describe("'.hasFired", function() {
+				it("returns false before the promise has fired", function() {
+					var originalCompletionSpy = jasmine.createSpy();
+					var p = preppy.promise(prepper(1, 2).then(originalCompletionSpy));
+
+					expect(p.hasFired).toBe(false);
+				});
+
+				it("returns true after the promise has fired", function() {
+					var listenerSpy = jasmine.createSpy();
+					var p = preppy.promise(prepper(1, 2));
+
+					p.run(listenerSpy);
+
+					waitsFor(spyToBeCalled(listenerSpy));
+
+					runs(function() {
+						expect(p.hasFired).toBe(true);
+					});
+				});
+			});
 		}
 
 		describePreps("::promise", function(prepper) {

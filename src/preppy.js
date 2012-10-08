@@ -100,7 +100,7 @@ define(function() {
 		var listenerList = [];
 		var cachedData;
 
-		return async(function(callback) {
+		var promisedPrep = async(function(callback) {
 			if (mode === PREPARED) {
 				listenerList.push(callback);
 				mode = STARTED;
@@ -121,6 +121,16 @@ define(function() {
 				callback.apply(null, cachedData);
 			}
 		});
+
+		Object.defineProperty(promisedPrep, "hasFired", {
+			configurable: true,
+			enumerable: true,
+			get: function() {
+				return mode === FINISHED;
+			}
+		});
+
+		return promisedPrep;
 	}
 
 	function precache(prep) {
@@ -146,13 +156,23 @@ define(function() {
 			}
 		});
 
-		return async(function(callback) {
+		var precachedPrep = async(function(callback) {
 			if (mode === STARTED) {
 				listenerList.push(callback);
 			} else {
 				callback.apply(null, cachedData);
 			}
 		});
+
+		Object.defineProperty(precachedPrep, "hasFired", {
+			configurable: true,
+			enumerable: true,
+			get: function() {
+				return mode === FINISHED;
+			}
+		});
+
+		return precachedPrep;
 	}
 
 	function join(preps, shouldContinue) {
