@@ -182,7 +182,7 @@ var p = ajaxGet(url);
 var cachedP = preppy.promise(p);
 ```
 
-As mentioned above Multiple callbacks can be registered with a single promise. In the following code, even though `run` is called multiple times, the underlying ajaxGet will only be started once.
+As mentioned above, multiple callbacks can be registered with a single promise. In the following code, even though `run` is called multiple times, the underlying ajaxGet will only be started once.
 
 ```javascript
 cachedP.run(function(value) {
