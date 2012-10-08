@@ -1,7 +1,7 @@
 define(function() {
 	var prepProto = {
 		run: function run(callback) {
-			this.prepFn.call(this, callback.bind(this));
+			this.prepFn.call(this, callback ? callback.bind(this) : callback);
 		},
 
 		map: function map(f) {
@@ -102,7 +102,9 @@ define(function() {
 
 		var promisedPrep = async(function(callback) {
 			if (mode === PREPARED) {
-				listenerList.push(callback);
+				if (callback) {
+					listenerList.push(callback);
+				}
 				mode = STARTED;
 				prep.run(function() {
 					if (mode === STARTED) {
@@ -116,7 +118,9 @@ define(function() {
 					}
 				});
 			} else if (mode === STARTED) {
-				listenerList.push(callback);
+				if (callback) {
+					listenerList.push(callback);
+				}
 			} else {
 				callback.apply(null, cachedData);
 			}
@@ -134,45 +138,9 @@ define(function() {
 	}
 
 	function precache(prep) {
-		if (!isPrep(prep)) {
-			throw "precache takes a prep";
-		}
-		var STARTED = { name: "STARTED" };
-		var FINISHED = { name: "FINISHED" };
-		var mode = STARTED;
-
-		var listenerList = [];
-		var cachedData;
-
-		prep.run(function() {
-			if (mode === STARTED) {
-				mode = FINISHED;
-				cachedData = arguments;
-				while (listenerList.length > 0) {
-					var listener = listenerList[0];
-					listenerList.splice(0, 1);
-					listener.apply(null, cachedData);
-				}
-			}
-		});
-
-		var precachedPrep = async(function(callback) {
-			if (mode === STARTED) {
-				listenerList.push(callback);
-			} else {
-				callback.apply(null, cachedData);
-			}
-		});
-
-		Object.defineProperty(precachedPrep, "hasFired", {
-			configurable: true,
-			enumerable: true,
-			get: function() {
-				return mode === FINISHED;
-			}
-		});
-
-		return precachedPrep;
+		var promisedPrep = promise(prep);
+		promisedPrep.run();
+		return promisedPrep;
 	}
 
 	function join(preps, shouldContinue) {
