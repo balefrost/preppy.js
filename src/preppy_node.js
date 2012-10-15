@@ -142,9 +142,29 @@ define(['preppyjs/preppy'], function(preppy) {
 			throw "not a nodeprep";
 		}
 		var promisedPrep = preppy.promise(nodePrep.prep);
-		return async(function(callback) {
+		var promisedNodePrep = async(function(callback) {
 			promisedPrep.run(callback);
 		});
+
+		Object.defineProperty(promisedNodePrep, "hasFired", {
+			configurable: true,
+			enumerable: true,
+			get: function() {
+				return promisedPrep.hasFired;
+			}
+		});
+
+		return promisedNodePrep;
+	}
+
+	function precache(nodePrep) {
+		if (!isNodePrep(nodePrep)) {
+			throw "not a nodeprep";
+		}
+
+		var thePromise = promise(nodePrep);
+		thePromise.run();
+		return thePromise;
 	}
 
 	return {
@@ -152,6 +172,7 @@ define(['preppyjs/preppy'], function(preppy) {
 		value: value,
 		error: error,
 		promise: promise,
+		precache: precache,
 		async: async,
 		prepify: prepify,
 		unprepify: unprepify,
