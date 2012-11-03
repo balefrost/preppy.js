@@ -274,6 +274,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 				var bindingSpy, callbackSpy;
 				beforeEach(function() {
 					bindingSpy = jasmine.createSpy();
+					bindingSpy2 = jasmine.createSpy();
 					callbackSpy = jasmine.createSpy();
 				});
 
@@ -284,6 +285,16 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 
 					runs(function() {
 						expect(bindingSpy).not.toHaveBeenCalled();
+					});
+				});
+
+				it("stops the prep pipeline", function() {
+					errorPrepper("e").bind(bindingSpy).bind(bindingSpy2).run(callbackSpy);
+
+					waitsFor(spyToBeCalled(callbackSpy));
+
+					runs(function() {
+						expect(bindingSpy2).not.toHaveBeenCalled();
 					});
 				});
 
@@ -421,6 +432,23 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 
 				it("runs the callback function", function() {
 					expect(callbackSpy).toHaveBeenCalledWith("er");
+				});
+			});
+		});
+
+		describe("bugs", function() {
+			it("actually stops the prep pipeline", function() {
+				//this test demonstrates an odd bug, where an error can cause the preceding pipeline to execute twice.
+				var invocationSpy = jasmine.createSpy();
+				pnode.async(function(continuation) {
+					invocationSpy();
+					continuation(null, "s");
+				}).bind(function() {
+					return pnode.error("e");
+				}).bind(function() {
+					throw "this bound function exists just to pull on the initial operation again, but it should never be called";
+				}).run(function() {
+					expect(invocationSpy.callCount).toBe(1);
 				});
 			});
 		});

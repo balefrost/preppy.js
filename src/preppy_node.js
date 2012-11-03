@@ -16,7 +16,7 @@ define(['preppyjs/preppy'], function(preppy) {
 			var nodePrep = this;
 			return this.bindall(function(err) {
 				if (err) {
-					return nodePrep;
+					return error.apply(this, arguments);
 				} else {
 					var values = Array.prototype.slice.call(arguments, 1);
 					var nextPrep = f.apply(nodePrep, values);
