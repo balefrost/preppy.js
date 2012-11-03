@@ -44,20 +44,18 @@ define(['preppyjs/preppy'], function(preppy) {
 			var prep = this;
 			return function(bodyPrepper) {
 				return prep.bind(function() {
-					var prepArguments = arguments;
-					return async(function(callback) {
-						var bodyPrep = bodyPrepper.apply(null, prepArguments);
-						var finallyPrep = finallyPrepper.apply(null, prepArguments);
-						bodyPrep.run(function() {
-							var bodyArguments = arguments;
-							finallyPrep.run(function(err) {
-								if (err) {
-									console.error("exception while processing finally");
-								}
-								callback.apply(null, bodyArguments);
-							});
+					var bodyPrep = bodyPrepper.apply(null, arguments);
+					var finallyPrep = finallyPrepper.apply(null, arguments);
+
+					return bodyPrep.bindall(function() {
+						var bodyResultPrep = new NodePrep(preppy.value.apply(preppy, arguments))
+						return finallyPrep.bindall(function(err) {
+							if (err) {
+								console.error("exception while processing finally");
+							}
+							return bodyResultPrep;
 						});
-					});
+					})
 				});
 			}
 		}
