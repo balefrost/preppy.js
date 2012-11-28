@@ -58,6 +58,34 @@ define(['preppyjs/preppy'], function(preppy) {
 					})
 				});
 			}
+		},
+
+		finallyall: function finallyall(finallyPrepper) {
+			var prep = this;
+			return function(bodyPrepper) {
+				return prep.bindall(function(err) {
+					var bodyPrep = bodyPrepper.apply(null, arguments);
+
+					if (!err) {
+						var finallyPrep = finallyPrepper.apply(null, Array.prototype.slice.call(arguments, 1, arguments.length));
+					}
+
+					return bodyPrep.bindall(function() {
+						var bodyResultPrep = new NodePrep(preppy.value.apply(preppy, arguments))
+
+						if (finallyPrep) {
+							return finallyPrep.bindall(function(err) {
+								if (err) {
+									console.error("exception while processing finally");
+								}
+								return bodyResultPrep;
+							});
+						} else {
+							return bodyResultPrep;
+						}
+					})
+				});
+			}
 		}
 	};
 
