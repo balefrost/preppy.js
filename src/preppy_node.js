@@ -127,11 +127,11 @@ define(['preppyjs/preppy'], function(preppy) {
 		}
 	}
 
-	function prepify(node_fn) {
+	function prepify(node_fn, module) {
 		return function() {
 			var args = Array.prototype.slice.call(arguments);
 			return async(function(callback) {
-				node_fn.apply(this, args.concat([callback]));
+				node_fn.apply(module ? module : null, args.concat([callback]));
 			});
 		};
 	}
