@@ -40,6 +40,17 @@ define(['preppyjs/preppy'], function(preppy) {
 			this.prep.run(callback || function() {});
 		},
 
+		run: function run(callback) {
+			callback = callback || function() { };
+
+			this.prep.run(function(err) {
+				if (!err) {
+					var args = Array.prototype.slice.call(arguments, 1);
+					callback.apply(null, args);
+				}
+			})
+		},
+
 		finally: function fnally(finallyPrepper) {
 			var prep = this;
 			return function(bodyPrepper) {
