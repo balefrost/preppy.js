@@ -1,7 +1,7 @@
 define(function() {
 	var prepProto = {
 		run: function run(callback) {
-			this.prepFn.call(this, callback ? callback.bind(this) : callback);
+			this.prepFn.call(this, callback ? callback.bind(this) : function() {});
 		},
 
 		map: function map(f) {

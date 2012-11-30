@@ -37,7 +37,7 @@ define(['preppyjs/preppy'], function(preppy) {
 		},
 
 		run: function run(callback) {
-			this.prep.run(callback);
+			this.prep.run(callback || function() {});
 		},
 
 		finally: function fnally(finallyPrepper) {
