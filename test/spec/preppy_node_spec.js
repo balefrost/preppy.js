@@ -65,15 +65,15 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 
 			it("immediately calls the callback with the values", function() {
 				var callback = jasmine.createSpy();
-				p.run(callback);
+				p.runall(callback);
 				expect(callback).toHaveBeenCalledWith(null, 42, 57);
 			});
 
 			it("can be reused", function() {
 				var callback1 = jasmine.createSpy();
 				var callback2 = jasmine.createSpy();
-				p.run(callback1);
-				p.run(callback2);
+				p.runall(callback1);
+				p.runall(callback2);
 				expect(callback1).toHaveBeenCalledWith(null, 42, 57);
 				expect(callback2).toHaveBeenCalledWith(null, 42, 57);
 			});
@@ -88,15 +88,15 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 
 			it("immediately calls the callback with the error", function() {
 				var callback = jasmine.createSpy();
-				p.run(callback);
+				p.runall(callback);
 				expect(callback).toHaveBeenCalledWith("error");
 			});
 
 			it("can be reused", function() {
 				var callback1 = jasmine.createSpy();
 				var callback2 = jasmine.createSpy();
-				p.run(callback1);
-				p.run(callback2);
+				p.runall(callback1);
+				p.runall(callback2);
 				expect(callback1).toHaveBeenCalledWith("error");
 				expect(callback2).toHaveBeenCalledWith("error");
 			});
@@ -195,7 +195,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 					var callbackSpy = jasmine.createSpy("callbackSpy");
 					successPrepper(19).map(function(v) {
 						return v + 11;
-					}).run(function(v) {
+					}).runall(function(v) {
 						callbackSpy.apply(null, arguments);
 					});
 
@@ -216,7 +216,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 				});
 
 				it("does not call the mapping function", function() {
-					errorPrepper("err").map(mappingSpy).run(callbackSpy);
+					errorPrepper("err").map(mappingSpy).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -226,7 +226,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 				});
 
 				it("passes the error through verbatim", function() {
-					errorPrepper("err").map(mappingSpy).run(callbackSpy);
+					errorPrepper("err").map(mappingSpy).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -243,7 +243,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 					var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(successPrepper(92));
 					var callbackSpy = jasmine.createSpy("callbackSpy");
 
-					successPrepper(15, 35).bind(bindingSpy).run(callbackSpy);
+					successPrepper(15, 35).bind(bindingSpy).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -260,7 +260,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 
 					successPrepper(15).bind(function(v) {
 						return errorPrepper("e");
-					}).run(callbackSpy);
+					}).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -279,7 +279,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 				});
 
 				it("does not call the binding function", function() {
-					errorPrepper("e").bind(bindingSpy).run(callbackSpy);
+					errorPrepper("e").bind(bindingSpy).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -289,7 +289,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 				});
 
 				it("stops the prep pipeline", function() {
-					errorPrepper("e").bind(bindingSpy).bind(bindingSpy2).run(callbackSpy);
+					errorPrepper("e").bind(bindingSpy).bind(bindingSpy2).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -299,7 +299,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 				});
 
 				it("passes the error through verbatim", function() {
-					errorPrepper("e").bind(bindingSpy).run(callbackSpy);
+					errorPrepper("e").bind(bindingSpy).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -316,7 +316,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 					var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(pnode.value(6, 7, 8));
 					var callbackSpy = jasmine.createSpy("callbackSpy");
 
-					successPrepper(19).bindall(bindingSpy).run(callbackSpy);
+					successPrepper(19).bindall(bindingSpy).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -330,7 +330,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 					var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(pnode.error(6, 7, 8));
 					var callbackSpy = jasmine.createSpy("callbackSpy");
 
-					successPrepper(19).bindall(bindingSpy).run(callbackSpy);
+					successPrepper(19).bindall(bindingSpy).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -346,7 +346,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 					var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(pnode.value(6, 7, 8));
 					var callbackSpy = jasmine.createSpy("callbackSpy");
 
-					errorPrepper("err", 78).bindall(bindingSpy).run(callbackSpy);
+					errorPrepper("err", 78).bindall(bindingSpy).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -360,7 +360,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 					var bindingSpy = jasmine.createSpy("bindingSpy").andReturn(pnode.error(6, 7, 8));
 					var callbackSpy = jasmine.createSpy("callbackSpy");
 
-					errorPrepper("err", 78).bindall(bindingSpy).run(callbackSpy);
+					errorPrepper("err", 78).bindall(bindingSpy).runall(callbackSpy);
 
 					waitsFor(spyToBeCalled(callbackSpy));
 
@@ -387,7 +387,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 					finallyPrepperSpy.andReturn(pnode.value(3));
 
 					var p = successPrepper(1).finally(finallyPrepperSpy)(bodyPrepperSpy);
-					p.run(callbackSpy);
+					p.runall(callbackSpy);
 					waitsFor(spyToBeCalled(callbackSpy));
 				});
 
@@ -406,7 +406,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 					finallyPrepperSpy.andReturn(pnode.value(3));
 
 					var p = successPrepper(1).finally(finallyPrepperSpy)(bodyPrepperSpy);
-					p.run(callbackSpy);
+					p.runall(callbackSpy);
 					waitsFor(spyToBeCalled(callbackSpy));
 				});
 
@@ -422,7 +422,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 			describe("error preps", function() {
 				beforeEach(function() {
 					var p = errorPrepper("er").finally(finallyPrepperSpy)(bodyPrepperSpy);
-					p.run(callbackSpy);
+					p.runall(callbackSpy);
 					waitsFor(spyToBeCalled(callbackSpy));
 				});
 
@@ -447,7 +447,7 @@ define(["helpers", "preppyjs/preppy_node", "preppyjs/preppy"], function(helpers,
 					return pnode.error("e");
 				}).bind(function() {
 					throw "this bound function exists just to pull on the initial operation again, but it should never be called";
-				}).run(function() {
+				}).runall(function() {
 					expect(invocationSpy.callCount).toBe(1);
 				});
 			});

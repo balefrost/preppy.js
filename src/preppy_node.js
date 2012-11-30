@@ -36,7 +36,7 @@ define(['preppyjs/preppy'], function(preppy) {
 			}));
 		},
 
-		run: function run(callback) {
+		runall: function runall(callback) {
 			this.prep.run(callback || function() {});
 		},
 
@@ -140,7 +140,7 @@ define(['preppyjs/preppy'], function(preppy) {
 		return function() {
 			var args = Array.prototype.slice.call(arguments, 0, arguments.length - 1);
 			var callback = arguments[arguments.length - 1];
-			returns_prep.apply(this, args).run(callback);
+			returns_prep.apply(this, args).runall(callback);
 		};
 	}
 
