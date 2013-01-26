@@ -1,5 +1,6 @@
 define(function() {
 	var prepProto = {
+		//TODO: figure out how to avoid creating this useless function - precache is installing the function in the listener list of its promise
 		run: function run(callback) {
 			this.prepFn.call(this, callback ? callback.bind(this) : function() {});
 		},
@@ -64,11 +65,13 @@ define(function() {
 		return Object.getPrototypeOf(obj) === prepProto;
 	}
 
-	function async(prep) {
-		if (isPrep(prep)) {
-			return prep;
+	function async(prepOrFn) {
+		if (isPrep(prepOrFn)) {
+			return prepOrFn;
+		} else if (typeof(prepOrFn) === 'function') {
+			return new Prep(prepOrFn);
 		} else {
-			return new Prep(prep);
+			throw "argument must be a prep or a function";
 		}
 	}
 
@@ -87,10 +90,9 @@ define(function() {
 		});
 	}
 
-	function promise(prep) {
-		if (!isPrep(prep)) {
-			throw "promise takes a prep";
-		}
+	//TODO: detect when prepOrFn is an already-promised prep and reuse it
+	function promise(prepOrFn) {
+		var prep = async(prepOrFn);
 
 		var PREPARED = { name: "PREPARED" };
 		var STARTED = { name: "STARTED" };
@@ -126,13 +128,36 @@ define(function() {
 			}
 		});
 
-		Object.defineProperty(promisedPrep, "hasFired", {
-			configurable: true,
-			enumerable: true,
-			get: function() {
-				return mode === FINISHED;
+		Object.defineProperties(promisedPrep, {
+			hasFired: {
+				configurable: true,
+				enumerable: true,
+				get: function() {
+					return mode === FINISHED;
+				}
+			},
+			_mode: {
+				configurable: true,
+				enumerable: true,
+				get: function() {
+					return mode;
+				}
+			},
+			_listenerList: {
+				configurable: true,
+				enumerable: true,
+				get: function() {
+					return listenerList;
+				}
+			},
+			_cachedData: {
+				configurable: true,
+				enumerable: true,
+				get: function() {
+					return cachedData;
+				}
 			}
-		});
+	});
 
 		return promisedPrep;
 	}
