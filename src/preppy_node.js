@@ -28,7 +28,7 @@ define(['preppyjs/preppy'], function(preppy) {
 		bindall: function bindall(f) {
 			var nodePrep = this;
 			return new NodePrep(nodePrep.prep.bind(function() {
-				var nextPrep = f.apply(this, arguments);
+				var nextPrep = f.apply(nodePrep, arguments);
 				if (!isNodePrep(nextPrep)) {
 					throw "expected " + (f.name || "(anonymous function)") + " to return a NodePrep, but it returned " + typeof(nextPrep);
 				}
@@ -131,10 +131,10 @@ define(['preppyjs/preppy'], function(preppy) {
 	function async(prepOrFn) {
 		if (isNodePrep(prepOrFn)) {
 			return prepOrFn;
-		} else if (typeof(prepOrFn === "function")) {
-			return new NodePrep(preppy.async(prepOrFn));
-		} else {
+		} else if (preppy.isPrep(prepOrFn)) {
 			return new NodePrep(prepOrFn);
+		} else {
+			return new NodePrep(preppy.async(prepOrFn));
 		}
 	}
 
@@ -174,14 +174,11 @@ define(['preppyjs/preppy'], function(preppy) {
 		return new NodePrep(joinedPrep);
 	}
 
-	function promise(nodePrep) {
-		if (!isNodePrep(nodePrep)) {
-			throw "not a nodeprep";
-		}
-		var promisedPrep = preppy.promise(nodePrep.prep);
-		var promisedNodePrep = async(function(callback) {
-			promisedPrep.run(callback);
-		});
+	//TODO: detect when prepOrFn is an already-promised prep and reuse it
+	function promise(prepOrFn) {
+		var prep = async(prepOrFn);
+
+		var promisedNodePrep = async(preppy.promise(prep.prep));
 
 		Object.defineProperty(promisedNodePrep, "hasFired", {
 			configurable: true,
@@ -194,12 +191,8 @@ define(['preppyjs/preppy'], function(preppy) {
 		return promisedNodePrep;
 	}
 
-	function precache(nodePrep) {
-		if (!isNodePrep(nodePrep)) {
-			throw "not a nodeprep";
-		}
-
-		var thePromise = promise(nodePrep);
+	function precache(prepOrFn) {
+		var thePromise = promise(prepOrFn);
 		thePromise.run();
 		return thePromise;
 	}
